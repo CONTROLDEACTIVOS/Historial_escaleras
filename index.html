@@ -1,177 +1,69 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Formulario Escaleras</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validar Estado de Escaleras</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 30px;
+      background-color: #f5f5f5;
+      padding: 40px;
     }
-    .formulario {
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      max-width: 700px;
+    .container {
+      max-width: 600px;
+      background-color: #fff;
       margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     h2 {
       color: #003366;
       text-align: center;
+      margin-bottom: 25px;
     }
     label {
+      display: block;
+      margin-top: 15px;
       font-weight: bold;
     }
-    input, select, textarea {
+    input[type="text"], input[type="email"] {
       width: 100%;
       padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
+      margin-top: 5px;
       border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
     }
     button {
-      background-color: #004d80;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 6px;
+      margin-top: 20px;
       width: 100%;
+      background-color: #004b80;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
     }
     button:hover {
-      background-color: #0066a2;
-    }
-    .serie-bloque {
-      background-color: #f9f9f9;
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-top: 10px;
-      border-radius: 8px;
+      background-color: #006ab3;
     }
   </style>
 </head>
 <body>
-  <div class="formulario">
+  <div class="container">
     <h2>Validar Estado de Escaleras</h2>
+    <form method="GET" action="https://n8n.tecnico.i.telconet.net/webhook-test/escalera_buscar1">
+      <label for="correo">Correo del Responsable</label>
+      <input type="email" id="correo" name="correo" required />
 
-    <label for="correo">Correo del Responsable</label>
-    <input type="email" id="correo" placeholder="correo@empresa.com" required>
+      <label for="placa">Placa del Vehículo</label>
+      <input type="text" id="placa" name="placa" required />
 
-    <label for="placa">Placa del Vehículo</label>
-    <input type="text" id="placa" placeholder="PBT7453" required>
-
-    <button onclick="buscarSeries()">Buscar Escaleras</button>
-
-    <form id="formSeries"></form>
-
-    <div id="mensaje"></div>
+      <button type="submit">Buscar Escaleras</button>
+    </form>
   </div>
-
-<script>
-function buscarSeries() {
-  const correo = document.getElementById("correo").value.trim();
-  const placa = document.getElementById("placa").value.trim().replace(/-/g, "").toUpperCase();
-
-  if (!correo || !placa) {
-    alert("Debes ingresar correo y placa");
-    return;
-  }
-
-  fetch("https://n8n.tecnico.i.telconet.net/webhook-test/escalera_buscar1", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ correo, placa })
-  })
-  .then(res => res.json())
-  .then(data => mostrarSeries(data.series || []))
-  .catch(err => {
-    console.error(err);
-    alert("Error al buscar escaleras.");
-  });
-}
-
-function mostrarSeries(series) {
-  const form = document.getElementById("formSeries");
-  form.innerHTML = "";
-
-  if (!series.length) {
-    form.innerHTML = "<p>No se encontraron escaleras para la placa ingresada.</p>";
-    return;
-  }
-
-  series.forEach((serie, index) => {
-    const div = document.createElement("div");
-    div.className = "serie-bloque";
-    div.innerHTML = `
-      <label><b>Serie:</b> ${serie.SERIE}</label><br>
-      <label><b>Artículo:</b> ${serie["NOMBRE ARTICULO"] || ""}</label><br><br>
-
-      <label>Estado:</label>
-      <select name="estado_${index}" onchange="toggleObservacion(this, 'obs_${index}')">
-        <option value="Buen estado">Buen estado</option>
-        <option value="Daño">Daño</option>
-        <option value="Serie cambiada">Serie cambiada</option>
-      </select>
-
-      <label>Observación:</label>
-      <textarea id="obs_${index}" name="obs_${index}" placeholder="Requerido si aplica" disabled></textarea>
-
-      <input type="hidden" name="serie" value="${serie.SERIE}">
-      <input type="hidden" name="articulo" value="${serie['NOMBRE ARTICULO'] || ""}">
-    `;
-    form.appendChild(div);
-  });
-
-  const btn = document.createElement("button");
-  btn.innerText = "Enviar Reporte";
-  btn.type = "button";
-  btn.onclick = enviarFormulario;
-  form.appendChild(btn);
-}
-
-function toggleObservacion(select, textareaId) {
-  const textarea = document.getElementById(textareaId);
-  if (select.value === "Daño" || select.value === "Serie cambiada") {
-    textarea.disabled = false;
-    textarea.required = true;
-  } else {
-    textarea.disabled = true;
-    textarea.required = false;
-    textarea.value = "";
-  }
-}
-
-function enviarFormulario() {
-  const correo = document.getElementById("correo").value;
-  const placa = document.getElementById("placa").value;
-  const seriesData = [];
-
-  const bloques = document.querySelectorAll(".serie-bloque");
-  bloques.forEach((bloque, i) => {
-    const serie = bloque.querySelector("input[name='serie']").value;
-    const articulo = bloque.querySelector("input[name='articulo']").value;
-    const estado = bloque.querySelector(`select[name='estado_${i}']`).value;
-    const observacion = bloque.querySelector(`textarea[name='obs_${i}']`).value;
-
-    seriesData.push({ correo, placa, serie, articulo, estado, observacion });
-  });
-
-  fetch("https://n8n.tecnico.i.telconet.net/webhook-test/escalera_guardar1", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(seriesData)
-  })
-  .then(res => {
-    if (res.ok) {
-      document.getElementById("mensaje").innerHTML = "<p style='color: green;'>¡Registro enviado correctamente!</p>";
-    } else {
-      document.getElementById("mensaje").innerHTML = "<p style='color: red;'>Error al enviar reporte.</p>";
-    }
-  });
-}
-</script>
 </body>
 </html>
