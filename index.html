@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Formulario Escaleras</title>
+  <title>Control de Escaleras</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,7 +15,7 @@
     label {
       font-weight: bold;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 8px;
       margin-bottom: 15px;
@@ -33,24 +33,28 @@
     button:hover {
       background-color: #00517a;
     }
+    #formularioFinal {
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
-
   <h2>Validación de Escaleras</h2>
 
-  <form id="formulario">
+  <form id="formularioInicial">
     <label for="correo">Correo empresarial:</label>
     <input type="email" id="correo" name="correo" required>
 
     <label for="placa">Número de placa:</label>
     <input type="text" id="placa" name="placa" required>
 
-    <button type="submit">Enviar</button>
+    <button type="submit">Buscar Escaleras</button>
   </form>
 
+  <div id="resultado"></div>
+
   <script>
-    document.getElementById("formulario").addEventListener("submit", function(e) {
+    document.getElementById("formularioInicial").addEventListener("submit", function(e) {
       e.preventDefault();
 
       const correo = document.getElementById("correo").value;
@@ -61,30 +65,17 @@
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          correo: correo,
-          placa: placa
-        })
+        body: JSON.stringify({ correo, placa })
       })
-      .then(response => {
-        if (response.ok) {
-          return response.text(); // obtener HTML
-        } else {
-          throw new Error("Error en la respuesta del servidor.");
-        }
-      })
+      .then(response => response.text())
       .then(html => {
-        // reemplaza todo el contenido de la página con el HTML generado
-        document.open();
-        document.write(html);
-        document.close();
+        document.getElementById("resultado").innerHTML = html;
       })
       .catch(error => {
-        console.error("Error al enviar:", error);
-        alert("Error en la conexión o en el envío.");
+        alert("Error al obtener escaleras.");
+        console.error(error);
       });
     });
   </script>
-
 </body>
 </html>
