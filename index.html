@@ -60,7 +60,7 @@
       const correo = document.getElementById("correo").value;
       const placa = document.getElementById("placa").value.replace(/-/g, "").toUpperCase();
 
-      fetch("https://n8n.tecnico.i.telconet.net/webhook-test/escalera_buscar1", {
+      fetch("https://n8n.tecnico.i.telconet.net/webhook/escalera_buscar1", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
